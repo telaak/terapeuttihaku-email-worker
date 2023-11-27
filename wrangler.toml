@@ -1,4 +1,4 @@
-name = "terapeuttihaku-cloudflare-email-worker"
+name = "terapeuttihaku-email-worker"
 main = "src/worker.ts"
 compatibility_date = "2023-11-22"
 
