@@ -29,6 +29,14 @@ interface EmailMessage<Body = unknown> {
   reply(message: EmailMessage): Promise<void>;
 }
 
+/**
+ * Convert's a readable stream into an array of bytes
+ * Used to read the email's raw bocy into a suitable form for pasing
+ * @param stream
+ * @param streamSize
+ * @returns
+ */
+
 async function streamToArrayBuffer(stream: ReadableStream, streamSize: number) {
   let result = new Uint8Array(streamSize);
   let bytesRead = 0;
@@ -45,6 +53,18 @@ async function streamToArrayBuffer(stream: ReadableStream, streamSize: number) {
 }
 
 export default {
+  /**
+   * Default email function for the worker
+   * Parses the email with {@link @PostalMime}
+   * Sends the content's of the email through HTTP POST, secret used as "password"
+   * POST request: `{ from, subject, text, html, secret }`
+   * Forward the message onto another email address
+   * Environmental variables: `API_URL, SECRET, FORWARD_EMAIL`
+   * @param message
+   * @param env environmental variables from Cloudflare
+   * @param ctx
+   */
+
   async email(message: EmailMessage, env: any, ctx: any) {
     const rawEmail = await streamToArrayBuffer(message.raw, message.rawSize);
     const parser = new PostalMime();
@@ -58,8 +78,8 @@ export default {
         from: message.from,
         subject: message.headers.get("subject"),
         text: parsedEmail.text,
-		html: parsedEmail.html,
-		secret: env.SECRET
+        html: parsedEmail.html,
+        secret: env.SECRET,
       }),
     });
     await message.forward(env.FORWARD_EMAIL);
